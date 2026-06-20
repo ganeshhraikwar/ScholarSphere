@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
 import cors from "cors";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -192,12 +191,13 @@ db.transaction(() => {
   }
 })();
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const app = express();
+export default app;
 
-  app.use(cors());
-  app.use(express.json());
+const PORT = 3000;
+
+app.use(cors());
+app.use(express.json());
 
   // AI Agent: Discover new scholarships
   async function runDiscoveryAgent() {
@@ -280,7 +280,7 @@ Output raw JSON, no markdown formatting at all.`;
     const today = new Date();
     today.setDate(today.getDate() + 7); // Remind 7 days before
     const nextWeekStr = today.toISOString().split('T')[0];
-    const expiringSoon = db.prepare("SELECT * FROM scholarships WHERE deadline <= ? AND status = 'ACTIVE'").all(nextWeekStr);
+    const expiringSoon = db.prepare("SELECT * FROM scholarships WHERE deadline <= ? AND status = 'ACTIVE'").all(nextWeekStr) as any[];
     
     if (expiringSoon.length > 0) {
        const subscribedUsers = db.prepare("SELECT * FROM users WHERE isSubscribed = 1").all();
@@ -476,25 +476,27 @@ Output raw JSON, no markdown formatting at all.`;
 
 
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
+  // Vite middleware for development (only run locally)
+  if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+    import("vite").then(async ({ createServer: createViteServer }) => {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+      
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
     });
-    // Express 4 uses use / * logic, in fact vite.middlewares handles requests automatically.
-    app.use(vite.middlewares);
-  } else {
+  } else if (!process.env.VERCEL) {
+    // Production standalone mode (not Vercel)
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
   }
-
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
-
-startServer();

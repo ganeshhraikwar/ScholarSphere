@@ -52,6 +52,23 @@ Make sure you have Node.js (v18+) and npm installed.
    npm run build
    ```
 
+## ☁️ Deployment Guide
+
+**⚠️ Do NOT deploy this app on Vercel or Netlify by default.**
+Because this app uses an Express.js backend, background chron jobs, and a local SQLite database (`better-sqlite3`), it requires a long-running Node.js server. Vercel only supports static sites and Serverless functions (where your database will reset on every click).
+
+**Recommended Platforms for Deployment:**
+- **Render.com** (Free tier available - choose "Web Service")
+- **Railway.app**
+- **Google Cloud Run**
+
+To deploy on Render:
+1. Create a new "Web Service" on Render.
+2. Connect your GitHub repository.
+3. Set the Build Command: `npm install && npm run build`
+4. Set the Start Command: `npm start`
+5. Add your `GEMINI_API_KEY` to the Environment Variables.
+
 ## 🎯 How It Works
 1. **Build Your Profile:** Share your academic background, region, and aspirations.
 2. **Get Machine Matched:** The AI agent monitors thousands of programs daily to surface only the grants you are highly likely to win.
