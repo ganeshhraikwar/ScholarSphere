@@ -1,0 +1,11 @@
+{
+  "name": "ScholarSphere",
+  "description": "Global Scholarship Finder platform to help students automatically discover scholarships worldwide based on their profile.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
